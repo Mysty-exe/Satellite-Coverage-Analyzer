@@ -16,8 +16,18 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
 
 add_executable(SatelliteCoverage ${SOURCES})
 
+file(GLOB SGP4_SOURCES
+    "libs/libsgp4/*.cc"
+)
+
+add_library(sgp4 ${SGP4_SOURCES})
+
+target_include_directories(sgp4 PUBLIC
+    libs/libsgp4
+)
+
 target_include_directories(SatelliteCoverage PRIVATE
     include
-    libs
-    libs/glm
 )
+
+target_link_libraries(SatelliteCoverage PRIVATE sgp4)

@@ -4,53 +4,128 @@ Satellite::Satellite()
 {
 }
 
-Satellite::Satellite(std::string name, std::vector<std::string> TLE1, std::vector<std::string> TLE2)
+Satellite::Satellite(std::string name, SatelliteType satelliteType, std::string TLE1, std::string TLE2)
 {
-    if (TLE1.size() != 9 || (TLE2.size() != 8 && TLE2.size() != 9))
-    {
-        std::cerr << "Error Initializing Satellite." << std::endl;
-        return;
-    }
-
     this->name = name;
-    id = std::stoi(TLE1[1].substr(0, TLE1[1].size() - 1));
-    classification = TLE1[1][TLE1[1].size() - 1];
-    if (classification == "U")
-        classification = "UNCLASSIFIED";
+    this->satelliteType = satelliteType;
 
-    launchDate = TLE1[2].substr(0, 2);
-    launchDate = (std::stoi(launchDate) > 30) ? "19" + launchDate : "20" + launchDate;
+    libsgp4::Tle TleObject = libsgp4::Tle(name, TLE1, TLE2);
+    propogator = std::make_unique<libsgp4::SGP4>(TleObject);
 
-    for (int i = TLE1[2].size() - 1; i >= 0; i--)
+    std::cout << getCurrentPosition() << std::endl;
+}
+
+libsgp4::CoordGeodetic Satellite::getCurrentPosition()
+{
+    std::time_t now = std::time(nullptr);
+    std::tm *local_time = std::localtime(&now);
+
+    libsgp4::DateTime currentTime = libsgp4::DateTime(local_time->tm_year + 1900, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+    return propogator->FindPosition(currentTime).ToGeodetic();
+}
+
+libsgp4::Vector Satellite::getCurrentVelocity()
+{
+    std::time_t now = std::time(nullptr);
+    std::tm *local_time = std::localtime(&now);
+
+    libsgp4::DateTime currentTime = libsgp4::DateTime(local_time->tm_year + 1900, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+    return propogator->FindPosition(currentTime).Velocity();
+}
+
+std::string Satellite::getSatelliteTypeStr()
+{
+    switch (satelliteType)
     {
-        if (std::isalpha(TLE1[2][i]))
-            primaryPayload.insert(0, 1, TLE1[2][i]);
+    case SatelliteType::SpaceStation:
+        return "Space Station";
+    case SatelliteType::Weather:
+        return "Weather";
+    case SatelliteType::EarthResources:
+        return "Earth Resources";
+    case SatelliteType::SyntheticApertureRadar:
+        return "Synthetic Aperture Radar";
+    case SatelliteType::SearchAndRescue:
+        return "Search & Rescue";
+    case SatelliteType::DisasterMonitoring:
+        return "Disaster Monitoring";
+    case SatelliteType::TrackingAndDataRelay:
+        return "Tracking and Data Relay";
+    case SatelliteType::Argos:
+        return "ARGOS";
+    case SatelliteType::Planet:
+        return "Planet";
+    case SatelliteType::Spire:
+        return "Spire";
+
+    case SatelliteType::ActiveGeosynchronous:
+        return "Active Geosynchronous";
+    case SatelliteType::GeoProtectedZone:
+        return "GEO Protected Zone";
+    case SatelliteType::GeoProtectedZonePlus:
+        return "GEO Protected Zone Plus";
+    case SatelliteType::Intelsat:
+        return "Intelsat";
+    case SatelliteType::SES:
+        return "SES";
+    case SatelliteType::Eutelsat:
+        return "Eutelsat";
+    case SatelliteType::Telesat:
+        return "Telesat";
+    case SatelliteType::Starlink:
+        return "Starlink";
+    case SatelliteType::OneWeb:
+        return "OneWeb";
+    case SatelliteType::Qianfan:
+        return "Qianfan";
+    case SatelliteType::HulianwangDigui:
+        return "Hulianwang Digui";
+    case SatelliteType::Kuiper:
+        return "Kuiper";
+    case SatelliteType::IridiumNext:
+        return "Iridium NEXT";
+    case SatelliteType::Orbcomm:
+        return "Orbcomm";
+    case SatelliteType::Globalstar:
+        return "Globalstar";
+    case SatelliteType::AmateurRadio:
+        return "Amateur Radio";
+    case SatelliteType::SatNOGS:
+        return "SatNOGS";
+    case SatelliteType::ExperimentalComm:
+        return "Experimental Comm";
+    case SatelliteType::OtherComm:
+        return "Other Comm";
+
+    case SatelliteType::GNSS:
+        return "GNSS";
+    case SatelliteType::GPS:
+        return "GPS";
+    case SatelliteType::GLONASS:
+        return "GLONASS";
+    case SatelliteType::Galileo:
+        return "Galileo";
+    case SatelliteType::BeiDou:
+        return "BeiDou";
+    case SatelliteType::SatelliteBasedAugmentation:
+        return "Satellite Based Augmentation";
+
+    case SatelliteType::SpaceAndEarthScience:
+        return "Space & Earth Science";
+    case SatelliteType::Geodetic:
+        return "Geodetic";
+    case SatelliteType::Engineering:
+        return "Engineering";
+    case SatelliteType::Education:
+        return "Education";
+
+    case SatelliteType::MiscellaneousMilitary:
+        return "Miscellaneous Military";
+    case SatelliteType::RadarCalibration:
+        return "Radar Calibration";
+    case SatelliteType::CubeSats:
+        return "CubeSats";
     }
-    launchNum = std::stoi(TLE1[2].substr(2, TLE1[2].size() - 2 - primaryPayload.size()));
 
-    double x;
-    epoch.year = std::stoi(TLE1[3].substr(0, 2));
-    epoch.day = std::stoi(TLE1[3].substr(2, 3));
-    double dayFraction = std::modf(std::stod(TLE1[3]), &x);
-    epoch.hour = std::floor(dayFraction * 24);
-    double hourFraction = std::modf(dayFraction * 24, &x);
-    epoch.minute = std::floor(hourFraction * 60);
-    double minuteFraction = std::modf(hourFraction * 60, &x);
-    epoch.second = std::floor(minuteFraction * 60);
-
-    meanMotion.meanMotion = std::stod(TLE2[6]);
-    meanMotion.firstDerivMeanMotion = std::stod(TLE1[4]);
-    meanMotion.secondDerivMeanMotion = std::stod(TLE1[5]);
-    BSTAR = std::pow(std::stod("0." + TLE1[6].substr(0, TLE1[6].size() - 2)), (TLE1[6][TLE1[6].size() - 1]) - '0');
-    ephemerisType = std::stod(TLE1[7]);
-
-    inclination = std::stod(TLE2[2]);
-    RAAN = std::stod(TLE2[3]);
-    eccentricity = std::stod("0." + TLE2[4]);
-    perigee = std::stod("0." + TLE2[4]);
-    meanAnamoly = std::stod(TLE2[5]);
-    revolutionNum = std::stod(TLE2[7]);
-
-    std::cout << id << ", " << classification << ", " << launchDate << ", " << launchNum << ", " << primaryPayload << ", " << meanMotion.meanMotion << ", " << meanMotion.firstDerivMeanMotion << ", " << meanMotion.secondDerivMeanMotion << ", " << BSTAR << ", " << ephemerisType << inclination << ", " << RAAN << ", " << eccentricity << ", " << perigee << ", " << meanAnamoly << ", " << revolutionNum << std::endl;
-    std::cout << epoch.year << ", " << epoch.day << ", " << epoch.hour << ", " << epoch.minute << ", " << epoch.second << std::endl;
+    return "Unknown";
 }
