@@ -4,8 +4,8 @@
 #include <cctype>
 #include <cmath>
 #include <ctime>
-#include "sgp4.h"
-#include "tle.h"
+#include "SGP4.h"
+#include "Tle.h"
 
 enum class SatelliteType
 {

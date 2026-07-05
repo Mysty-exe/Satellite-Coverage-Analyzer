@@ -1,4 +1,4 @@
-#include <Models/Satellite.h>
+#include "Satellite.h"
 
 Satellite::Satellite()
 {
