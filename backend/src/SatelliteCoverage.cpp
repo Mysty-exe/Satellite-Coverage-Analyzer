@@ -1,9 +1,8 @@
 #include <iostream>
-#include <fstream>
 #include <string>
+#include <sstream>
 #include <emscripten/bind.h>
 #include "Satellite.h"
-#include "httplib.h"
 
 const std::vector<std::pair<SatelliteType, std::string>> satelliteFiles = {
     std::make_pair(SatelliteType::SpaceStation, "stations"),
@@ -18,8 +17,6 @@ const std::vector<std::pair<SatelliteType, std::string>> satelliteFiles = {
     std::make_pair(SatelliteType::Spire, "spire"),
 
     std::make_pair(SatelliteType::ActiveGeosynchronous, "geo"),
-    std::make_pair(SatelliteType::GeoProtectedZone, "gpz"),
-    std::make_pair(SatelliteType::GeoProtectedZonePlus, "gpz-plus"),
     std::make_pair(SatelliteType::Intelsat, "intelsat"),
     std::make_pair(SatelliteType::SES, "ses"),
     std::make_pair(SatelliteType::Eutelsat, "eutelsat"),
@@ -53,96 +50,67 @@ const std::vector<std::pair<SatelliteType, std::string>> satelliteFiles = {
     std::make_pair(SatelliteType::RadarCalibration, "radar"),
     std::make_pair(SatelliteType::CubeSats, "cubesat")};
 
-std::string loadData()
+SatelliteType getSatelliteType(std::string group)
 {
-    std::vector<Satellite> satellites;
-
-    httplib::Client cli("celestrak.org");
-
     for (int i = 0; i < satelliteFiles.size(); i++)
+        if (satelliteFiles[i].second == group)
+            return satelliteFiles[i].first;
+}
+
+std::vector<std::string> getSatelliteGroups()
+{
+    std::vector<std::string> groups;
+    for (int i = 0; i < satelliteFiles.size(); i++)
+        groups.push_back(satelliteFiles[i].second);
+
+    return groups;
+}
+
+std::vector<SatelliteDTO> getSatellitesDTO(std::string group, std::string data)
+{
+    std::vector<SatelliteDTO> satellites;
+
+    std::string line, currentName;
+    std::string currentTLELine1, currentTLELine2;
+
+    int tleLine = 1;
+    std::stringstream ss(data);
+    while (std::getline(ss, line))
     {
-        auto res = cli.Get("/NORAD/elements/gp.php?GROUP=" + satelliteFiles[i].second + "&FORMAT=TLE");
-
-        if (!res)
-            std::cout << "Couldn't Connect to Web Server." << std::endl;
-
-        if (res)
+        if (!line.empty())
         {
-            std::cout << "Status: " << res->status << std::endl;
-
-            if (res->status == 200)
-            {
-                std::cout << "Path: " + satelliteFiles[i].second + "&FORMAT = TLE" << std::endl;
-                std::cout << "Data successfully read from site.\n\n";
-
-                std::ofstream satelliteData("cache/" + satelliteFiles[i].second + ".tle");
-
-                if (!satelliteData.is_open())
-                {
-                    std::cout << "cache/" + satelliteFiles[i].second + ".tle" << std::endl;
-                    std::cerr << "Error: Could not open the file!" << std::endl;
-                    return cli.host();
-                }
-
-                satelliteData << res->body;
-
-                satelliteData.close();
-            }
-
-            else if (res->status == 403)
-            {
-                std::cout << "Path: " + satelliteFiles[i].second + "&FORMAT = TLE" << std::endl;
-                std::cerr << "Error: Data Has Not Been Updated.\n\n";
-            }
+            if (tleLine == 1)
+                currentName = line;
 
             else
             {
-                std::cout << "Path: " + satelliteFiles[i].second + "&FORMAT = TLE" << std::endl;
-                std::cout << "Error Downloading Data From Site.";
-            }
-        }
-
-        std::ifstream satelliteData("cache/" + satelliteFiles[i].second + ".tle");
-
-        if (!satelliteData.is_open())
-        {
-            std::cerr << "Error: Could not open the file!" << std::endl;
-            return cli.host();
-        }
-
-        std::string line, currentName;
-        std::string currentTLELine1, currentTLELine2;
-
-        int tleLine = 1;
-        while (std::getline(satelliteData, line))
-        {
-            if (!line.empty())
-            {
-                if (tleLine == 1)
-                    currentName = line;
-
-                else
-                {
-                    if (tleLine == 2)
-                        currentTLELine1 = line.substr(0, line.size() - 1);
-                    if (tleLine == 3)
-                        currentTLELine2 = line.substr(0, line.size() - 1);
-                }
-
+                if (tleLine == 2)
+                    currentTLELine1 = line.substr(0, line.size() - 1);
                 if (tleLine == 3)
-                    satellites.push_back(Satellite(currentName, satelliteFiles[i].first, currentTLELine1, currentTLELine2));
-
-                tleLine = (tleLine + 1 > 3) ? 1 : tleLine + 1;
+                    currentTLELine2 = line.substr(0, line.size() - 1);
             }
-        }
 
-        satelliteData.close();
+            if (tleLine == 3)
+            {
+                Satellite s = Satellite(currentName, getSatelliteType(group), currentTLELine1, currentTLELine2);
+                satellites.push_back(s.getDTO());
+            }
+
+            tleLine = (tleLine + 1 > 3) ? 1 : tleLine + 1;
+        }
     }
 
-    return cli.host();
+    return satellites;
 }
 
 EMSCRIPTEN_BINDINGS(my_module)
 {
-    emscripten::function("loadData", &loadData);
+    emscripten::value_object<SatelliteDTO>("Satellite")
+        .field("name", &SatelliteDTO::name)
+        .field("lat", &SatelliteDTO::lat)
+        .field("lon", &SatelliteDTO::lon);
+    emscripten::register_vector<std::string>("SatelliteGroups");
+    emscripten::function("getSatelliteGroups", &getSatelliteGroups);
+    emscripten::register_vector<SatelliteDTO>("VectorSatellite");
+    emscripten::function("getSatellitesDTO", &getSatellitesDTO);
 }

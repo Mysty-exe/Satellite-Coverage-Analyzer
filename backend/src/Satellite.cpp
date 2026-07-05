@@ -8,11 +8,11 @@ Satellite::Satellite(std::string name, SatelliteType satelliteType, std::string 
 {
     this->name = name;
     this->satelliteType = satelliteType;
+    this->TleLineOne = TLE1;
+    this->TleLineTwo = TLE2;
 
     libsgp4::Tle TleObject = libsgp4::Tle(name, TLE1, TLE2);
-    propogator = std::make_unique<libsgp4::SGP4>(TleObject);
-
-    std::cout << getCurrentPosition() << std::endl;
+    libsgp4::SGP4 propogator(TleObject);
 }
 
 libsgp4::CoordGeodetic Satellite::getCurrentPosition()
@@ -128,4 +128,9 @@ std::string Satellite::getSatelliteTypeStr()
     }
 
     return "Unknown";
+}
+
+SatelliteDTO Satellite::getDTO()
+{
+    return SatelliteDTO(name, 0, 0);
 }

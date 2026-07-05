@@ -57,18 +57,35 @@ enum class SatelliteType
     CubeSats
 };
 
+struct SatelliteDTO
+{
+    std::string name;
+    double lat, lon, vel;
+    SatelliteDTO()
+    {
+    }
+    SatelliteDTO(std::string name, double lat, double lon)
+    {
+        this->name = name;
+        this->lat = lat;
+        this->lon = lon;
+    }
+};
+
 class Satellite
 {
 private:
     SatelliteType satelliteType;
-    std::string name;
+    std::string name, TleLineOne, TleLineTwo;
     std::unique_ptr<libsgp4::SGP4> propogator;
 
 public:
     Satellite();
     Satellite(std::string name, SatelliteType satelliteType, std::string TLE1, std::string TLE2);
+    std::string getName() { return name; };
     libsgp4::CoordGeodetic getCurrentPosition();
     libsgp4::Vector getCurrentVelocity();
     SatelliteType getSatelliteType() { return satelliteType; }
     std::string getSatelliteTypeStr();
+    SatelliteDTO getDTO();
 };
