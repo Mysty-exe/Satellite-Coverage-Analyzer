@@ -1,8 +1,17 @@
-import { CameraControls, FirstPersonControls, KeyboardControls, OrbitControls, useKeyboardControls } from "@react-three/drei";
-import { Canvas, useFrame, useThree, type CameraProps } from "@react-three/fiber"
-import { useEffect, useRef, type RefObject } from "react";
-import { MathUtils, Vector3 } from "three";
-import { cos } from "three/tsl";
+import { KeyboardControls, useCursor, useKeyboardControls } from "@react-three/drei";
+import { Canvas, useFrame, useThree } from "@react-three/fiber"
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { Vector3 } from "three";
+
+interface SimulationProps {
+    satellites: any[]
+}
+
+interface SatelliteMeshProps {
+    lat: number,
+    lon: number,
+    alt: number
+}
 
 interface SphereMeshProps {
     ref: RefObject<any>,
@@ -12,8 +21,11 @@ interface SphereMeshProps {
     wireframe: boolean
 }
 
-interface SceneProps {
-    clicking: boolean
+let currentZoom = 0;
+const earth = {
+    pos: new Vector3(),
+    radius: 2,
+    tilt: 23.44
 }
 
 const SphereMesh = (props: SphereMeshProps) => {
@@ -30,42 +42,70 @@ const EarthMesh = () => {
     const earthRef = useRef<any>(null);
 
     useFrame((state, delta, frame) => {
-        earthRef.current.rotation.y += delta * 0.1;
+        // earthRef.current.rotation.y += delta * 0.02;
     });
 
     return (
-        <SphereMesh ref={earthRef} position={[0, 0, 0]} args={[2, 32, 32]} color={"lightblue"} wireframe={true}/>
+        <SphereMesh ref={earthRef} position={earth.pos} args={[earth.radius, 32, 32]} color={"lightblue"} wireframe={true}/>
     )
 }
 
-const SatelliteMesh = () => {
+const SatelliteMesh = ({ lat, lon, alt }: SatelliteMeshProps) => {
     const satelliteRef = useRef(null);
 
+    const pos = useMemo(() => {
+        const r = earth.radius + alt;
+
+        return new Vector3(
+            r * Math.cos(lat) * Math.cos(-lon),
+            r * Math.sin(lat),
+            r * Math.cos(lat) * Math.sin(-lon)
+    );
+    }, [lat, lon, alt]);
+
     return (
-        <SphereMesh ref={satelliteRef} position={[2, 2, 0]} args={[0.3, 32, 16]} color={"red"} wireframe={true}/>
+        <SphereMesh ref={satelliteRef} position={pos} args={[0.05, 32, 16]} color={"red"} wireframe={true}/>
     )
 }
 
-function handleCamera(clicking: boolean) {
+const CameraController = () => 
+{
     const { camera } = useThree();
     const [, getKeys] = useKeyboardControls();
-    const dragging = useRef(false);
+    const [dragging, setDragging] = useState(false)
     const cameraValues = useRef({ pitch: 0, yaw: 0 });
     const previous = useRef({ x: 0, y: 0 });
 
     useEffect(() => {
-        const down = () => dragging.current = true;
-        const up = () => dragging.current = false;
+        const down = () => {
+            setDragging(true);
+        };
+        const up = () => {
+            setDragging(false);
+        }
+        const zoom = (e: WheelEvent) => {
+            const direction = camera.getWorldDirection(new Vector3());
+
+            currentZoom += e.deltaY * 0.01;
+            currentZoom = (currentZoom < -5) ? -5 : currentZoom;
+            currentZoom = (currentZoom > 5) ? 5 : currentZoom;
+
+            if (Math.abs(currentZoom) > 4.9) return;
+            camera.position.addScaledVector(direction, e.deltaY * 0.01);
+        }
 
         window.addEventListener("pointerdown", down);
         window.addEventListener("pointerup", up);
+        window.addEventListener("wheel", zoom);
 
         return () => {
             window.removeEventListener("pointerdown", down);
             window.removeEventListener("pointerup", up);
+            window.removeEventListener("wheel", zoom);
         };
     }, []);
 
+    useCursor(dragging, 'none', 'auto');
 
     useFrame((state, delta) => {
         const { forward, backward, left, right, up, down } = getKeys();
@@ -91,7 +131,7 @@ function handleCamera(clicking: boolean) {
         previous.current.x = x;
         previous.current.y = y;
 
-        if (!dragging.current)
+        if (!dragging)
             return
 
         cameraValues.current.yaw -= xOffset * 1;
@@ -106,21 +146,24 @@ function handleCamera(clicking: boolean) {
         camera.rotation.y = cameraValues.current.yaw;
         camera.rotation.x = cameraValues.current.pitch;
     })
+
+    return <></>
 }
 
-const Scene = (props: SceneProps) => {
-    handleCamera(props.clicking);
-
+const Scene = ({ satellites }: SimulationProps) => {
     return (
-        <>            
-            <EarthMesh />
-            {/* <SatelliteMesh /> */}
+        <>
+            <group rotation={[earth.tilt * Math.PI / 180, -90 * Math.PI / 180, 0]}>
+                <EarthMesh />
+                {/* <SatelliteMesh lat={0} lon={0} alt={0} /> */}
+                {satellites.map( (sat, i) => <SatelliteMesh key={i} lat={sat.lat} lon={sat.lon} alt={sat.alt / 500} /> )}
+            </group>
         </>
     )
 }
 
-function Simulation() {
-    const globalClick = useRef(false);
+function Simulation(props: SimulationProps) {
+    // console.log(props.satellites)
 
     return (
         <KeyboardControls
@@ -132,11 +175,10 @@ function Simulation() {
                 { name: "up", keys: ["Space"] },
                 { name: "down", keys: ["Shift"] }
             ]}>
-            <Canvas camera={{fov: 90}} 
-                onPointerDown={() => (globalClick.current = true)}
-                onPointerUp={() => (globalClick.current = false)}>
+            <Canvas camera={{fov: 90}} >
                 <ambientLight />
-                <Scene clicking={globalClick.current} />
+                <CameraController />
+                <Scene satellites={props.satellites} />
             </Canvas>
         </KeyboardControls>
     )

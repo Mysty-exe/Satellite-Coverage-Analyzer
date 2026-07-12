@@ -60,15 +60,16 @@ enum class SatelliteType
 struct SatelliteDTO
 {
     std::string name;
-    double lat, lon, vel;
+    double lat, lon, alt;
     SatelliteDTO()
     {
     }
-    SatelliteDTO(std::string name, double lat, double lon)
+    SatelliteDTO(std::string name, double lat, double lon, double alt)
     {
         this->name = name;
         this->lat = lat;
         this->lon = lon;
+        this->alt = alt;
     }
 };
 

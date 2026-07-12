@@ -12,7 +12,7 @@ Satellite::Satellite(std::string name, SatelliteType satelliteType, std::string 
     this->TleLineTwo = TLE2;
 
     libsgp4::Tle TleObject = libsgp4::Tle(name, TLE1, TLE2);
-    libsgp4::SGP4 propogator(TleObject);
+    propogator = std::make_unique<libsgp4::SGP4>(TleObject);
 }
 
 libsgp4::CoordGeodetic Satellite::getCurrentPosition()
@@ -132,5 +132,6 @@ std::string Satellite::getSatelliteTypeStr()
 
 SatelliteDTO Satellite::getDTO()
 {
-    return SatelliteDTO(name, 0, 0);
+    libsgp4::CoordGeodetic pos = getCurrentPosition();
+    return SatelliteDTO(name, pos.latitude, pos.longitude, pos.altitude);
 }

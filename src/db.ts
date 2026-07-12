@@ -6,14 +6,14 @@ export const db = await openDB("SatelliteCoverage", 1, {
   },
 });
 
-async function getTLE(group: string) {
+export async function loadTLE(group: string) {
     const cached = await db.get("tle", group);
 
     if (
         cached &&
         Date.now() - cached.downloadedAt < 2 * 60 * 60 * 1000
     ) {
-        return cached.data;
+        return;
     }
 
     const response = await fetch(
@@ -21,7 +21,7 @@ async function getTLE(group: string) {
     );
 
     if (response.status == 403)
-        return cached.data;
+        return;
 
     const text = await response.text();
 
@@ -33,8 +33,9 @@ async function getTLE(group: string) {
         },
         group
     );
-
-    return text;
 }
 
-export default getTLE
+export async function getTLE(group: string) {
+    const cached = await db.get("tle", group);
+    return cached.data;
+}
