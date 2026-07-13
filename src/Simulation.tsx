@@ -1,7 +1,7 @@
-import { KeyboardControls, useCursor, useKeyboardControls } from "@react-three/drei";
+import { KeyboardControls, useCursor, useGLTF, useKeyboardControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { Vector3 } from "three";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Box3, Sphere, Vector3 } from "three";
 
 interface SimulationProps {
     satellites: any[]
@@ -13,14 +13,6 @@ interface SatelliteMeshProps {
     alt: number
 }
 
-interface SphereMeshProps {
-    ref: RefObject<any>,
-    position: any,
-    args: any,
-    color: string,
-    wireframe: boolean
-}
-
 let currentZoom = 0;
 const earth = {
     pos: new Vector3(),
@@ -28,26 +20,17 @@ const earth = {
     tilt: 23.44
 }
 
-const SphereMesh = (props: SphereMeshProps) => {
-    return (
-        <mesh ref={props.ref} position={props.position}>
-        <sphereGeometry args={props.args} />
-        <meshStandardMaterial color={props.color}
-        wireframe={props.wireframe} />
-        </mesh>
-    )
-};
-
 const EarthMesh = () => {
-    const earthRef = useRef<any>(null);
+    // useFrame((state, delta) => {
+    // });
 
-    useFrame((state, delta, frame) => {
-        // earthRef.current.rotation.y += delta * 0.02;
-    });
+    const { scene } = useGLTF('/Models/Earth 2/scene.gltf');
+    const box = new Box3().setFromObject(scene);
+    const sphere = new Sphere();
+    box.getBoundingSphere(sphere);
+    earth.radius = 16;
 
-    return (
-        <SphereMesh ref={earthRef} position={earth.pos} args={[earth.radius, 32, 32]} color={"lightblue"} wireframe={true}/>
-    )
+    return <primitive object={scene} scale={[0.06, 0.06, 0.06]} />;
 }
 
 const SatelliteMesh = ({ lat, lon, alt }: SatelliteMeshProps) => {
@@ -60,16 +43,18 @@ const SatelliteMesh = ({ lat, lon, alt }: SatelliteMeshProps) => {
             r * Math.cos(lat) * Math.cos(-lon),
             r * Math.sin(lat),
             r * Math.cos(lat) * Math.sin(-lon)
-    );
+        );
     }, [lat, lon, alt]);
 
     return (
-        <SphereMesh ref={satelliteRef} position={pos} args={[0.05, 32, 16]} color={"red"} wireframe={true}/>
+        <mesh ref={satelliteRef} position={pos}>
+            <sphereGeometry args={[0.05, 32, 16]} />
+            <meshBasicMaterial color={"white"} />
+        </mesh>
     )
 }
 
-const CameraController = () => 
-{
+const CameraController = () => {
     const { camera } = useThree();
     const [, getKeys] = useKeyboardControls();
     const [dragging, setDragging] = useState(false)
@@ -109,13 +94,13 @@ const CameraController = () =>
 
     useFrame((state, delta) => {
         const { forward, backward, left, right, up, down } = getKeys();
-        const speed = delta * 3;
+        const speed = delta * 5;
         const forwardDir = new Vector3();
         const rightDir = new Vector3();
 
         camera.getWorldDirection(forwardDir);
         rightDir.crossVectors(camera.up, forwardDir).normalize();
-    
+
         if (forward) camera.position.add(forwardDir.multiplyScalar(speed));
         if (backward) camera.position.sub(forwardDir.multiplyScalar(speed))
         if (right) camera.position.sub(rightDir.multiplyScalar(speed))
@@ -151,20 +136,27 @@ const CameraController = () =>
 }
 
 const Scene = ({ satellites }: SimulationProps) => {
+        const scene = useRef(null);
+
+        useFrame((state, delta) => {
+            if (scene.current)
+                scene.current.rotation.y += delta * 0.02;
+        });
+
     return (
         <>
-            <group rotation={[earth.tilt * Math.PI / 180, -90 * Math.PI / 180, 0]}>
-                <EarthMesh />
-                {/* <SatelliteMesh lat={0} lon={0} alt={0} /> */}
-                {satellites.map( (sat, i) => <SatelliteMesh key={i} lat={sat.lat} lon={sat.lon} alt={sat.alt / 500} /> )}
+            <group rotation={[earth.tilt * Math.PI / 180, 0, 0]}>
+                <group ref={scene} rotation={[0, -90 * Math.PI / 180, 0]}>
+                    <EarthMesh />
+                    {/* <SatelliteMesh lat={0} lon={0} alt={0} /> */}
+                    {satellites.map((sat, i) => <SatelliteMesh key={i} lat={sat.lat} lon={sat.lon} alt={sat.alt / 1000} />)}
+                </group>
             </group>
         </>
     )
 }
 
 function Simulation(props: SimulationProps) {
-    // console.log(props.satellites)
-
     return (
         <KeyboardControls
             map={[
@@ -175,8 +167,9 @@ function Simulation(props: SimulationProps) {
                 { name: "up", keys: ["Space"] },
                 { name: "down", keys: ["Shift"] }
             ]}>
-            <Canvas camera={{fov: 90}} >
-                <ambientLight />
+            <Canvas camera={{ fov: 90, position: [0, 0, 20] }} >
+                <directionalLight position={[-5, 0, 0]} intensity={1.5} />
+                <ambientLight intensity={0.1} />
                 <CameraController />
                 <Scene satellites={props.satellites} />
             </Canvas>

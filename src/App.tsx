@@ -1,4 +1,5 @@
 import './App.css';
+import './Loading.css';
 import Simulation from './Simulation.js';
 import { useEffect, useState } from 'react';
 // @ts-ignore
@@ -22,29 +23,30 @@ for (let i = 0; i < arr.size(); i++) {
 arr.delete();
 
 function App() {
+  const [initialized, setInitialized] = useState(false);
   const [satellites, setSatellites] = useState<Satellite[]>([]);
 
   useEffect(() => {
     async function load() {
-          await Promise.all(
-          satelliteGroups.map(async (group) => {
-              await loadTLE(group);
+        for (const group of satelliteGroups) {
+            await loadTLE(group);
+            const data = await getTLE(group);
+            Module.initializeSatelliteGroup(group, data);
+        }
 
-              const data = await getTLE(group);
-              Module.initializeSatelliteGroup(group, data);
-          })
-        );
-      }
+        setInitialized(true);
+    }
 
-      load();
+    load();
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(async () => {
+    if (!initialized) return
+    const interval = setInterval(() => {
         const updatedSatellites: Satellite[] = [];
 
         for (const group of satelliteGroups) {
-            if (group != "geo") continue;
+            if (group != "argos") continue;
 
             const vec = Module.getSatellitesDTO(group);
 
@@ -64,10 +66,16 @@ function App() {
 
         setSatellites(updatedSatellites);
 
-    }, 200);
+    }, 500);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [initialized]);
+
+  if (!initialized) {
+    return (
+        <div className="loader">Loading...</div>
+    )
+  }
 
   return (
     <div>
