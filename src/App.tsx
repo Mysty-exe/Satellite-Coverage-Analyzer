@@ -1,28 +1,35 @@
-import './App.css';
-import './Loading.css';
-import Simulation from './Simulation.js';
+import './styles/App.css';
+import './styles/Loading.css';
+import Simulation from './core/Simulation.js';
 import { useEffect, useState } from 'react';
+import { loadTLE, getTLE } from './database/db.js';
 // @ts-ignore
 import createModule from './wasm/SatelliteCoverage.js';
-import { loadTLE, getTLE } from './db.js';
 
 const Module = await createModule();
 
 type Satellite = {
     name: string;
+    colour: string;
     lat: number;
     lon: number;
     alt: number;
 };
 
-const arr = Module.getSatelliteGroups();
-const satelliteGroups: string[] = [];
-for (let i = 0; i < arr.size(); i++) {
-  satelliteGroups.push(arr.get(i));
+function getGroups() {
+  const arr = Module.getSatelliteGroups();
+  const groups: string[] = [];
+  for (let i = 0; i < arr.size(); i++) {
+    groups.push(arr.get(i));
+  }
+  arr.delete();
+
+  return groups;
 }
-arr.delete();
+
 
 function App() {
+  const satelliteGroups = getGroups();
   const [initialized, setInitialized] = useState(false);
   const [satellites, setSatellites] = useState<Satellite[]>([]);
 
@@ -46,7 +53,7 @@ function App() {
         const updatedSatellites: Satellite[] = [];
 
         for (const group of satelliteGroups) {
-            if (group != "argos") continue;
+            if (group != "geo") continue;
 
             const vec = Module.getSatellitesDTO(group);
 
@@ -55,6 +62,7 @@ function App() {
 
                 updatedSatellites.push({
                     name: sat.name,
+                    colour: sat.colour,
                     lat: sat.lat,
                     lon: sat.lon,
                     alt: sat.alt

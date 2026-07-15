@@ -59,14 +59,15 @@ enum class SatelliteType
 
 struct SatelliteDTO
 {
-    std::string name;
+    std::string name, colour;
     double lat, lon, alt;
     SatelliteDTO()
     {
     }
-    SatelliteDTO(std::string name, double lat, double lon, double alt)
+    SatelliteDTO(std::string name, std::string colour, double lat, double lon, double alt)
     {
         this->name = name;
+        this->colour = colour;
         this->lat = lat;
         this->lon = lon;
         this->alt = alt;
@@ -77,12 +78,12 @@ class Satellite
 {
 private:
     SatelliteType satelliteType;
-    std::string name, TleLineOne, TleLineTwo;
+    std::string name, colour, TleLineOne, TleLineTwo;
     std::unique_ptr<libsgp4::SGP4> propogator;
 
 public:
     Satellite();
-    Satellite(std::string name, SatelliteType satelliteType, std::string TLE1, std::string TLE2);
+    Satellite(std::string name, SatelliteType satelliteType, std::string colour, std::string TLE1, std::string TLE2);
     std::string getName() { return name; };
     libsgp4::CoordGeodetic getCurrentPosition();
     libsgp4::Vector getCurrentVelocity();

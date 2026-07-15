@@ -2,58 +2,61 @@
 
 Simulation::Simulation()
 {
-    satelliteFiles = {
-        std::make_pair(SatelliteType::SpaceStation, "stations"),
-        std::make_pair(SatelliteType::Weather, "weather"),
-        std::make_pair(SatelliteType::EarthResources, "resource"),
-        std::make_pair(SatelliteType::SyntheticApertureRadar, "sar"),
-        std::make_pair(SatelliteType::SearchAndRescue, "sarsat"),
-        std::make_pair(SatelliteType::DisasterMonitoring, "dmc"),
-        std::make_pair(SatelliteType::TrackingAndDataRelay, "tdrss"),
-        std::make_pair(SatelliteType::Argos, "argos"),
-        std::make_pair(SatelliteType::Planet, "planet"),
-        std::make_pair(SatelliteType::Spire, "spire"),
+    satelliteFiles =
+        {
+            {"stations", {SatelliteType::SpaceStation, "white"}},
+            {"weather", {SatelliteType::Weather, "deepskyblue"}},
+            {"resource", {SatelliteType::EarthResources, "forestgreen"}},
+            {"sar", {SatelliteType::SyntheticApertureRadar, "mediumpurple"}},
+            {"sarsat", {SatelliteType::SearchAndRescue, "gold"}},
+            {"dmc", {SatelliteType::DisasterMonitoring, "orange"}},
+            {"tdrss", {SatelliteType::TrackingAndDataRelay, "hotpink"}},
+            {"argos", {SatelliteType::Argos, "turquoise"}},
+            {"planet", {SatelliteType::Planet, "mediumseagreen"}},
+            {"spire", {SatelliteType::Spire, "dodgerblue"}},
 
-        std::make_pair(SatelliteType::ActiveGeosynchronous, "geo"),
-        std::make_pair(SatelliteType::Intelsat, "intelsat"),
-        std::make_pair(SatelliteType::SES, "ses"),
-        std::make_pair(SatelliteType::Eutelsat, "eutelsat"),
-        std::make_pair(SatelliteType::Telesat, "telesat"),
-        std::make_pair(SatelliteType::Starlink, "starlink"),
-        std::make_pair(SatelliteType::OneWeb, "oneweb"),
-        std::make_pair(SatelliteType::Qianfan, "qianfan"),
-        std::make_pair(SatelliteType::HulianwangDigui, "hulianwang"),
-        std::make_pair(SatelliteType::Kuiper, "kuiper"),
-        std::make_pair(SatelliteType::IridiumNext, "iridium-NEXT"),
-        std::make_pair(SatelliteType::Orbcomm, "orbcomm"),
-        std::make_pair(SatelliteType::Globalstar, "globalstar"),
-        std::make_pair(SatelliteType::AmateurRadio, "amateur"),
-        std::make_pair(SatelliteType::SatNOGS, "satnogs"),
-        std::make_pair(SatelliteType::ExperimentalComm, "x-comm"),
-        std::make_pair(SatelliteType::OtherComm, "other-comm"),
+            {"geo", {SatelliteType::ActiveGeosynchronous, "lightgray"}},
+            {"intelsat", {SatelliteType::Intelsat, "royalblue"}},
+            {"ses", {SatelliteType::SES, "steelblue"}},
+            {"eutelsat", {SatelliteType::Eutelsat, "slateblue"}},
+            {"telesat", {SatelliteType::Telesat, "cornflowerblue"}},
+            {"starlink", {SatelliteType::Starlink, "azure"}},
+            {"oneweb", {SatelliteType::OneWeb, "skyblue"}},
+            {"qianfan", {SatelliteType::Qianfan, "tomato"}},
+            {"hulianwang", {SatelliteType::HulianwangDigui, "indianred"}},
+            {"kuiper", {SatelliteType::Kuiper, "mediumorchid"}},
+            {"iridium-NEXT", {SatelliteType::IridiumNext, "silver"}},
+            {"orbcomm", {SatelliteType::Orbcomm, "darkcyan"}},
+            {"globalstar", {SatelliteType::Globalstar, "teal"}},
+            {"amateur", {SatelliteType::AmateurRadio, "lime"}},
+            {"satnogs", {SatelliteType::SatNOGS, "springgreen"}},
+            {"x-comm", {SatelliteType::ExperimentalComm, "violet"}},
+            {"other-comm", {SatelliteType::OtherComm, "lightslategray"}},
 
-        std::make_pair(SatelliteType::GNSS, "gnss"),
-        std::make_pair(SatelliteType::GPS, "gps-ops"),
-        std::make_pair(SatelliteType::GLONASS, "glo-ops"),
-        std::make_pair(SatelliteType::Galileo, "galileo"),
-        std::make_pair(SatelliteType::BeiDou, "beidou"),
-        std::make_pair(SatelliteType::SatelliteBasedAugmentation, "sbas"),
+            {"gnss", {SatelliteType::GNSS, "yellow"}},
+            {"gps-ops", {SatelliteType::GPS, "limegreen"}},
+            {"glo-ops", {SatelliteType::GLONASS, "crimson"}},
+            {"galileo", {SatelliteType::Galileo, "cornsilk"}},
+            {"beidou", {SatelliteType::BeiDou, "crimson"}},
+            {"sbas", {SatelliteType::SatelliteBasedAugmentation, "khaki"}},
 
-        std::make_pair(SatelliteType::SpaceAndEarthScience, "science"),
-        std::make_pair(SatelliteType::Geodetic, "geodetic"),
-        std::make_pair(SatelliteType::Engineering, "engineering"),
-        std::make_pair(SatelliteType::Education, "education"),
+            {"science", {SatelliteType::SpaceAndEarthScience, "beige"}},
+            {"geodetic", {SatelliteType::Geodetic, "cyan"}},
+            {"engineering", {SatelliteType::Engineering, "darkorange"}},
+            {"education", {SatelliteType::Education, "blueviolet"}},
 
-        std::make_pair(SatelliteType::MiscellaneousMilitary, "military"),
-        std::make_pair(SatelliteType::RadarCalibration, "radar"),
-        std::make_pair(SatelliteType::CubeSats, "cubesat")};
+            {"military", {SatelliteType::MiscellaneousMilitary, "deeppink"}},
+            {"radar", {SatelliteType::RadarCalibration, "orchid"}},
+            {"cubesat", {SatelliteType::CubeSats, "darksalmon"}}};
 }
 
 void Simulation::initializeSatelliteGroup(std::string group, std::string data)
 {
     std::string line, currentName;
     std::string currentTLELine1, currentTLELine2;
-    SatelliteType groupType = getSatelliteType(group);
+    auto type = getSatelliteType(group);
+    SatelliteType groupType = std::get<0>(type);
+    std::string colour = std::get<1>(type);
     std::vector<Satellite> sats;
 
     int tleLine = 1;
@@ -75,7 +78,7 @@ void Simulation::initializeSatelliteGroup(std::string group, std::string data)
 
             if (tleLine == 3)
             {
-                Satellite s = Satellite(currentName, groupType, currentTLELine1, currentTLELine2);
+                Satellite s = Satellite(currentName, groupType, colour, currentTLELine1, currentTLELine2);
                 sats.push_back(std::move(s));
             }
 
@@ -86,25 +89,25 @@ void Simulation::initializeSatelliteGroup(std::string group, std::string data)
     satellites.push_back(std::make_pair(groupType, std::move(sats)));
 }
 
-SatelliteType Simulation::getSatelliteType(std::string group)
+std::tuple<SatelliteType, std::string> Simulation::getSatelliteType(std::string group)
 {
     for (int i = 0; i < satelliteFiles.size(); i++)
-        if (satelliteFiles[i].second == group)
-            return satelliteFiles[i].first;
+        if (satelliteFiles[i].first == group)
+            return satelliteFiles[i].second;
 }
 
 std::vector<std::string> Simulation::getSatelliteGroups()
 {
     std::vector<std::string> groups;
     for (int i = 0; i < satelliteFiles.size(); i++)
-        groups.push_back(satelliteFiles[i].second);
+        groups.push_back(satelliteFiles[i].first);
 
     return groups;
 }
 
 std::vector<SatelliteDTO> Simulation::getSatellitesDTO(std::string group)
 {
-    SatelliteType groupType = getSatelliteType(group);
+    SatelliteType groupType = std::get<0>(getSatelliteType(group));
     for (int i = 0; i < satellites.size(); i++)
     {
         if (satellites[i].first == groupType)
@@ -141,6 +144,7 @@ EMSCRIPTEN_BINDINGS(my_module)
 {
     emscripten::value_object<SatelliteDTO>("Satellite")
         .field("name", &SatelliteDTO::name)
+        .field("colour", &SatelliteDTO::colour)
         .field("lat", &SatelliteDTO::lat)
         .field("lon", &SatelliteDTO::lon)
         .field("alt", &SatelliteDTO::alt);

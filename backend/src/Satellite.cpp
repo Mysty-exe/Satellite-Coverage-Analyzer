@@ -4,10 +4,11 @@ Satellite::Satellite()
 {
 }
 
-Satellite::Satellite(std::string name, SatelliteType satelliteType, std::string TLE1, std::string TLE2)
+Satellite::Satellite(std::string name, SatelliteType satelliteType, std::string colour, std::string TLE1, std::string TLE2)
 {
     this->name = name;
     this->satelliteType = satelliteType;
+    this->colour = colour;
     this->TleLineOne = TLE1;
     this->TleLineTwo = TLE2;
 
@@ -133,5 +134,5 @@ std::string Satellite::getSatelliteTypeStr()
 SatelliteDTO Satellite::getDTO()
 {
     libsgp4::CoordGeodetic pos = getCurrentPosition();
-    return SatelliteDTO(name, pos.latitude, pos.longitude, pos.altitude);
+    return SatelliteDTO(name, colour, pos.latitude, pos.longitude, pos.altitude);
 }
