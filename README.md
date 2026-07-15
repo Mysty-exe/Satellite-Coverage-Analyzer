@@ -1,3 +1,3 @@
 # Satellite Coverage Analyzer
 
-A C++ mission analysis tool that evaluates Earth observation satellite coverage, revisit times, and ground station contact opportunities using real orbital data.
+A satellite tracking and visualization tool using real orbital data to propagate satellite positions, display orbital information, and analyze satellite movement around Earth.
