@@ -85,9 +85,9 @@ public:
     Satellite();
     Satellite(std::string name, SatelliteType satelliteType, std::string colour, std::string TLE1, std::string TLE2);
     std::string getName() { return name; };
-    libsgp4::CoordGeodetic getCurrentPosition();
-    libsgp4::Vector getCurrentVelocity();
+    libsgp4::CoordGeodetic getCurrentPosition(std::time_t startDate, double tSince);
+    libsgp4::Vector getCurrentVelocity(std::time_t startDate, double tSince);
     SatelliteType getSatelliteType() { return satelliteType; }
     std::string getSatelliteTypeStr();
-    SatelliteDTO getDTO();
+    SatelliteDTO getDTO(std::time_t startDate, double tSince);
 };

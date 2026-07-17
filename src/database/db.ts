@@ -1,12 +1,13 @@
 import { openDB } from "idb";
 
-export const db = await openDB("SatelliteCoverage", 1, {
-  upgrade(db) {
-    db.createObjectStore("tle");
-  },
+let dbPromise = openDB("SatelliteCoverage", 1, {
+    upgrade(db) {
+        db.createObjectStore("tle");
+    },
 });
 
 export async function loadTLE(group: string) {
+    const db = await dbPromise;
     const cached = await db.get("tle", group);
 
     if (
@@ -36,6 +37,7 @@ export async function loadTLE(group: string) {
 }
 
 export async function getTLE(group: string) {
+    const db = await dbPromise;
     const cached = await db.get("tle", group);
     return cached.data;
 }

@@ -1,12 +1,11 @@
 import './styles/App.css';
-import './styles/Loading.css';
 import Simulation from './core/Simulation.js';
-import { useEffect, useState } from 'react';
-import { loadTLE, getTLE } from './database/db.js';
+import { Suspense, useEffect, useRef, useState } from 'react';
 // @ts-ignore
 import createModule from './wasm/SatelliteCoverage.js';
-
-const Module = await createModule();
+import LoadingScreen from './core/LoadingScreen.js';
+import { Canvas } from '@react-three/fiber';
+import { useProgress } from '@react-three/drei';
 
 type Satellite = {
     name: string;
@@ -16,79 +15,66 @@ type Satellite = {
     alt: number;
 };
 
+const Module = await createModule();
+
 function getGroups() {
-  const arr = Module.getSatelliteGroups();
-  const groups: string[] = [];
-  for (let i = 0; i < arr.size(); i++) {
-    groups.push(arr.get(i));
-  }
-  arr.delete();
 
-  return groups;
+    const arr = Module.getSatelliteGroups();
+    const groups: string[] = [];
+    for (let i = 0; i < arr.size(); i++) {
+        groups.push(arr.get(i));
+    }
+    arr.delete();
+
+    return groups;
 }
-
 
 function App() {
   const satelliteGroups = getGroups();
-  const [initialized, setInitialized] = useState(false);
-  const [satellites, setSatellites] = useState<Satellite[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const satellitesRef = useRef<Satellite[]>([]);
+  const workerRef = useRef(null);
+  const tSinceRef = useRef(1);
+  const timeRateRef = useRef(1);
 
   useEffect(() => {
-    async function load() {
-        for (const group of satelliteGroups) {
-            await loadTLE(group);
-            const data = await getTLE(group);
-            Module.initializeSatelliteGroup(group, data);
-        }
+        const worker = new Worker(
+            new URL("./database/loadData.ts", import.meta.url),
+            { type: "module" }
+        );
 
-        setInitialized(true);
-    }
+        workerRef.current = worker;
 
-    load();
-  }, []);
+        worker.onmessage = (event) => {
+            satellitesRef.current = event.data;
+            setLoaded(true);
+        };
 
-  useEffect(() => {
-    if (!initialized) return
-    const interval = setInterval(() => {
-        const updatedSatellites: Satellite[] = [];
+        worker.postMessage({
+            type: "start",
+            groups: satelliteGroups,
+            tSince: tSinceRef.current
+        });
 
-        for (const group of satelliteGroups) {
-            if (group != "geo") continue;
+        return () => {
+            worker.postMessage({
+                type: "stop"
+            });
 
-            const vec = Module.getSatellitesDTO(group);
+            worker.terminate();
+        };
+    }, []);
 
-            for (let i = 0; i < vec.size(); i++) {
-                const sat = vec.get(i);
-
-                updatedSatellites.push({
-                    name: sat.name,
-                    colour: sat.colour,
-                    lat: sat.lat,
-                    lon: sat.lon,
-                    alt: sat.alt
-                });
-            }
-            
-            vec.delete();
-        }
-
-        setSatellites(updatedSatellites);
-
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, [initialized]);
-
-  if (!initialized) {
+  if (!loaded) {
     return (
-        <div className="loader">Loading...</div>
-    )
+        <LoadingScreen />
+    );
   }
 
   return (
-    <div>
-      <Simulation satellites={satellites} />
-    </div>
+    <Canvas camera={{ fov: 50, position: [0, 0, 40] }}>
+        <Simulation satellitesRef={satellitesRef} tSinceRef={tSinceRef} timeRateRef={timeRateRef} workerRef={workerRef} />
+    </Canvas>
   );
 }
 

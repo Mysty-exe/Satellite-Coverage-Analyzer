@@ -1,17 +1,19 @@
 import Sun from "./Sunlight";
-import SatelliteMesh from "../rendering/SatelliteMesh";
+import SatelliteGroup from "../rendering/SatelliteMesh";
 import EarthMesh, { earth } from "../rendering/EarthMesh";
-import CameraController from "./CameraController";
-import { KeyboardControls } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber"
-import { useEffect, useRef } from "react";
+import { OrbitControls } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber"
+import { Suspense, useEffect, useRef, type RefObject } from "react";
 import Skybox from "../rendering/Skymap";
 
 interface SimulationProps {
-    satellites: any[]
+    workerRef: RefObject<any>
+    satellitesRef: RefObject<any>
+    tSinceRef: RefObject<any>
+    timeRateRef: RefObject<any>
 }
 
-const Scene = ({ satellites }: SimulationProps) => {
+const Scene = ({ satellitesRef, tSinceRef, timeRateRef, workerRef }: SimulationProps) => {
         const scene = useRef(null);
 
         useEffect(() => {
@@ -22,13 +24,19 @@ const Scene = ({ satellites }: SimulationProps) => {
                 date.getUTCMinutes() / 60 +
                 date.getUTCSeconds() / 3600;
 
-            const longitude = (utcHours - 12) * 15;
+                const longitude = (utcHours - 12) * 15;
 
                 scene.current.rotation.y = (-180 + longitude) * Math.PI / 180;
             }
         }, []);
 
-        useFrame((state, delta) => {
+        useFrame((_, delta) => {
+            tSinceRef.current += timeRateRef.current * delta;
+            workerRef.current.postMessage({
+                type: "setTimeRate",
+                tSince: tSinceRef.current
+            });
+
             if (scene.current) {
                 const earthRotationSpeed = (2 * Math.PI) / (23 * 56 * 60);
                 scene.current.rotation.y += delta * earthRotationSpeed;
@@ -40,32 +48,36 @@ const Scene = ({ satellites }: SimulationProps) => {
             <group rotation={[earth.tilt * Math.PI / 180, 0, 0]}>
                 <group ref={scene} rotation={[0, 0, 0]}>
                     <EarthMesh />
-                    {satellites.map((sat, i) => <SatelliteMesh key={i} colour={sat.colour} lat={sat.lat} lon={sat.lon} alt={earth.radius + (sat.alt / 1000)} />)}
+                    <SatelliteGroup satellitesRef={satellitesRef} />
                 </group>
             </group>
         </>
     )
 }
 
-function Simulation(props: SimulationProps) {
+function Simulation({ satellitesRef, tSinceRef, timeRateRef, workerRef }: SimulationProps) {
     return (
-        <KeyboardControls
-            map={[
-                { name: "forward", keys: ["ArrowUp", "w", "W"] },
-                { name: "backward", keys: ["ArrowDown", "s", "S"] },
-                { name: "right", keys: ["ArrowRight", "d", "D"] },
-                { name: "left", keys: ["ArrowLeft", "a", "A"] },
-                { name: "up", keys: ["Space"] },
-                { name: "down", keys: ["Shift"] }
-            ]}>
-            <Canvas camera={{ fov: 50, position: [0, 0, 25] }} >
+        // <KeyboardControls
+        //     map={[
+        //         { name: "forward", keys: ["ArrowUp", "w", "W"] },
+        //         { name: "backward", keys: ["ArrowDown", "s", "S"] },
+        //         { name: "right", keys: ["ArrowRight", "d", "D"] },
+        //         { name: "left", keys: ["ArrowLeft", "a", "A"] },
+        //         { name: "up", keys: ["Space"] },
+        //         { name: "down", keys: ["Shift"] }
+        //     ]}>
+        <>
+                {/* <CameraController minDistance={earth.radius + 3} maxDistance={150} /> */}
+            <OrbitControls minDistance={earth.radius + 2} maxDistance={150}/>
+            <Sun />
+            <ambientLight intensity={0.1} />
+            <Suspense fallback={null}>
                 <Skybox />
-                <Sun />
-                <ambientLight intensity={0.1} />
-                <CameraController minDistance={earth.radius} maxDistance={100} />
-                <Scene satellites={props.satellites} />
-            </Canvas>
-        </KeyboardControls>
+                <Scene satellitesRef={satellitesRef} tSinceRef={tSinceRef} timeRateRef={timeRateRef} workerRef={workerRef} />
+            </Suspense>
+        </>
+
+        // </KeyboardControls>
     )
 }
 

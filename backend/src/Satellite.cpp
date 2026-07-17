@@ -16,19 +16,20 @@ Satellite::Satellite(std::string name, SatelliteType satelliteType, std::string 
     propogator = std::make_unique<libsgp4::SGP4>(TleObject);
 }
 
-libsgp4::CoordGeodetic Satellite::getCurrentPosition()
+libsgp4::CoordGeodetic Satellite::getCurrentPosition(std::time_t startDate, double tSince)
 {
-    std::time_t now = std::time(nullptr);
-    std::tm *local_time = std::localtime(&now);
+    startDate += tSince;
+    std::tm *local_time = std::localtime(&startDate);
 
     libsgp4::DateTime currentTime = libsgp4::DateTime(local_time->tm_year + 1900, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+
     return propogator->FindPosition(currentTime).ToGeodetic();
 }
 
-libsgp4::Vector Satellite::getCurrentVelocity()
+libsgp4::Vector Satellite::getCurrentVelocity(std::time_t startDate, double tSince)
 {
-    std::time_t now = std::time(nullptr);
-    std::tm *local_time = std::localtime(&now);
+    startDate += tSince;
+    std::tm *local_time = std::localtime(&startDate);
 
     libsgp4::DateTime currentTime = libsgp4::DateTime(local_time->tm_year + 1900, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
     return propogator->FindPosition(currentTime).Velocity();
@@ -131,8 +132,8 @@ std::string Satellite::getSatelliteTypeStr()
     return "Unknown";
 }
 
-SatelliteDTO Satellite::getDTO()
+SatelliteDTO Satellite::getDTO(std::time_t startDate, double tSince)
 {
-    libsgp4::CoordGeodetic pos = getCurrentPosition();
+    libsgp4::CoordGeodetic pos = getCurrentPosition(startDate, tSince);
     return SatelliteDTO(name, colour, pos.latitude, pos.longitude, pos.altitude);
 }

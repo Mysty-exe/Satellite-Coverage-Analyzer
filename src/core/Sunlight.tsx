@@ -14,7 +14,7 @@ const Sun = () => {
     });
 
     return (
-        <directionalLight ref={sunRef} intensity={1.5} />
+        <directionalLight ref={sunRef} intensity={2} />
     )
 }
 

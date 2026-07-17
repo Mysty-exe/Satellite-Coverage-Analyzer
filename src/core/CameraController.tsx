@@ -50,7 +50,7 @@ const CameraController = (props: CameraControllerProps) => {
 
     useFrame((state, delta) => {
         const { forward, backward, left, right, up, down } = getKeys();
-        const speed = delta * 5;
+        const speed = delta * 10;
         const forwardDir = new Vector3();
         const rightDir = new Vector3();
 

@@ -4,54 +4,64 @@ Simulation::Simulation()
 {
     satelliteFiles =
         {
-            {"stations", {SatelliteType::SpaceStation, "white"}},
+            // Earth Observation / Mission
+            {"stations", {SatelliteType::SpaceStation, "deepskyblue"}},
             {"weather", {SatelliteType::Weather, "deepskyblue"}},
-            {"resource", {SatelliteType::EarthResources, "forestgreen"}},
-            {"sar", {SatelliteType::SyntheticApertureRadar, "mediumpurple"}},
-            {"sarsat", {SatelliteType::SearchAndRescue, "gold"}},
-            {"dmc", {SatelliteType::DisasterMonitoring, "orange"}},
-            {"tdrss", {SatelliteType::TrackingAndDataRelay, "hotpink"}},
-            {"argos", {SatelliteType::Argos, "turquoise"}},
-            {"planet", {SatelliteType::Planet, "mediumseagreen"}},
-            {"spire", {SatelliteType::Spire, "dodgerblue"}},
+            {"resource", {SatelliteType::EarthResources, "deepskyblue"}},
+            {"sar", {SatelliteType::SyntheticApertureRadar, "deepskyblue"}},
+            {"sarsat", {SatelliteType::SearchAndRescue, "deepskyblue"}},
+            {"dmc", {SatelliteType::DisasterMonitoring, "deepskyblue"}},
+            {"tdrss", {SatelliteType::TrackingAndDataRelay, "deepskyblue"}},
+            {"argos", {SatelliteType::Argos, "deepskyblue"}},
+            {"planet", {SatelliteType::Planet, "deepskyblue"}},
+            {"spire", {SatelliteType::Spire, "deepskyblue"}},
 
-            {"geo", {SatelliteType::ActiveGeosynchronous, "lightgray"}},
-            {"intelsat", {SatelliteType::Intelsat, "royalblue"}},
-            {"ses", {SatelliteType::SES, "steelblue"}},
-            {"eutelsat", {SatelliteType::Eutelsat, "slateblue"}},
-            {"telesat", {SatelliteType::Telesat, "cornflowerblue"}},
-            {"starlink", {SatelliteType::Starlink, "azure"}},
-            {"oneweb", {SatelliteType::OneWeb, "skyblue"}},
-            {"qianfan", {SatelliteType::Qianfan, "tomato"}},
-            {"hulianwang", {SatelliteType::HulianwangDigui, "indianred"}},
+            // Communications
+            {"geo", {SatelliteType::ActiveGeosynchronous, "mediumorchid"}},
+            {"intelsat", {SatelliteType::Intelsat, "mediumorchid"}},
+            {"ses", {SatelliteType::SES, "mediumorchid"}},
+            {"eutelsat", {SatelliteType::Eutelsat, "mediumorchid"}},
+            {"telesat", {SatelliteType::Telesat, "mediumorchid"}},
+            {"starlink", {SatelliteType::Starlink, "mediumorchid"}},
+            {"oneweb", {SatelliteType::OneWeb, "mediumorchid"}},
+            {"qianfan", {SatelliteType::Qianfan, "mediumorchid"}},
+            {"hulianwang", {SatelliteType::HulianwangDigui, "mediumorchid"}},
             {"kuiper", {SatelliteType::Kuiper, "mediumorchid"}},
-            {"iridium-NEXT", {SatelliteType::IridiumNext, "silver"}},
-            {"orbcomm", {SatelliteType::Orbcomm, "darkcyan"}},
-            {"globalstar", {SatelliteType::Globalstar, "teal"}},
-            {"amateur", {SatelliteType::AmateurRadio, "lime"}},
-            {"satnogs", {SatelliteType::SatNOGS, "springgreen"}},
-            {"x-comm", {SatelliteType::ExperimentalComm, "violet"}},
-            {"other-comm", {SatelliteType::OtherComm, "lightslategray"}},
+            {"iridium-NEXT", {SatelliteType::IridiumNext, "mediumorchid"}},
+            {"orbcomm", {SatelliteType::Orbcomm, "mediumorchid"}},
+            {"globalstar", {SatelliteType::Globalstar, "mediumorchid"}},
+            {"amateur", {SatelliteType::AmateurRadio, "mediumorchid"}},
+            {"satnogs", {SatelliteType::SatNOGS, "mediumorchid"}},
+            {"x-comm", {SatelliteType::ExperimentalComm, "mediumorchid"}},
+            {"other-comm", {SatelliteType::OtherComm, "mediumorchid"}},
 
-            {"gnss", {SatelliteType::GNSS, "yellow"}},
-            {"gps-ops", {SatelliteType::GPS, "limegreen"}},
-            {"glo-ops", {SatelliteType::GLONASS, "crimson"}},
-            {"galileo", {SatelliteType::Galileo, "cornsilk"}},
-            {"beidou", {SatelliteType::BeiDou, "crimson"}},
-            {"sbas", {SatelliteType::SatelliteBasedAugmentation, "khaki"}},
+            // Navigation
+            {"gnss", {SatelliteType::GNSS, "gold"}},
+            {"gps-ops", {SatelliteType::GPS, "gold"}},
+            {"glo-ops", {SatelliteType::GLONASS, "gold"}},
+            {"galileo", {SatelliteType::Galileo, "gold"}},
+            {"beidou", {SatelliteType::BeiDou, "gold"}},
+            {"sbas", {SatelliteType::SatelliteBasedAugmentation, "gold"}},
 
-            {"science", {SatelliteType::SpaceAndEarthScience, "beige"}},
-            {"geodetic", {SatelliteType::Geodetic, "cyan"}},
-            {"engineering", {SatelliteType::Engineering, "darkorange"}},
-            {"education", {SatelliteType::Education, "blueviolet"}},
+            // Science & Research
+            {"science", {SatelliteType::SpaceAndEarthScience, "limegreen"}},
+            {"geodetic", {SatelliteType::Geodetic, "limegreen"}},
+            {"engineering", {SatelliteType::Engineering, "limegreen"}},
+            {"education", {SatelliteType::Education, "limegreen"}},
 
-            {"military", {SatelliteType::MiscellaneousMilitary, "deeppink"}},
-            {"radar", {SatelliteType::RadarCalibration, "orchid"}},
-            {"cubesat", {SatelliteType::CubeSats, "darksalmon"}}};
-}
+            // Government & Miscellaneous
+            {"military", {SatelliteType::MiscellaneousMilitary, "tomato"}},
+            {"radar", {SatelliteType::RadarCalibration, "tomato"}},
+            {"cubesat", {SatelliteType::CubeSats, "tomato"}}};
+
+    startDate = std::time(nullptr);
+};
 
 void Simulation::initializeSatelliteGroup(std::string group, std::string data)
 {
+    std::time_t now = std::time(nullptr);
+    std::tm *local_time = std::localtime(&now);
+
     std::string line, currentName;
     std::string currentTLELine1, currentTLELine2;
     auto type = getSatelliteType(group);
@@ -105,9 +115,10 @@ std::vector<std::string> Simulation::getSatelliteGroups()
     return groups;
 }
 
-std::vector<SatelliteDTO> Simulation::getSatellitesDTO(std::string group)
+std::vector<SatelliteDTO> Simulation::getSatellitesDTO(std::string group, std::time_t startDate, double tSince)
 {
     SatelliteType groupType = std::get<0>(getSatelliteType(group));
+
     for (int i = 0; i < satellites.size(); i++)
     {
         if (satellites[i].first == groupType)
@@ -115,8 +126,9 @@ std::vector<SatelliteDTO> Simulation::getSatellitesDTO(std::string group)
             std::vector<SatelliteDTO> data;
             for (auto &sat : satellites[i].second)
             {
-                data.push_back(sat.getDTO());
+                data.push_back(sat.getDTO(startDate, tSince));
             }
+
             return data;
         }
     }
@@ -130,9 +142,9 @@ void initializeSatelliteGroup(std::string group, std::string data)
     simulation.initializeSatelliteGroup(group, data);
 }
 
-std::vector<SatelliteDTO> getSatellitesDTO(std::string group)
+std::vector<SatelliteDTO> getSatellitesDTO(std::string group, double tSince)
 {
-    return simulation.getSatellitesDTO(group);
+    return simulation.getSatellitesDTO(group, simulation.getStartDate(), tSince);
 }
 
 std::vector<std::string> getSatelliteGroups()
