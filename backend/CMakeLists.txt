@@ -32,6 +32,8 @@ target_include_directories(SatelliteCoverage PRIVATE
 
 target_link_libraries(SatelliteCoverage PRIVATE sgp4)
 
+target_compile_options(SatelliteCoverage PRIVATE -fexceptions)
+
 target_link_options(SatelliteCoverage PRIVATE
     "SHELL:-sDISABLE_EXCEPTION_CATCHING=0"
     "SHELL:-sFETCH=1"

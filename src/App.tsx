@@ -1,11 +1,9 @@
 import './styles/App.css';
 import Simulation from './core/Simulation.js';
-import { Suspense, useEffect, useRef, useState } from 'react';
-// @ts-ignore
-import createModule from './wasm/SatelliteCoverage.js';
+import { useEffect, useRef, useState } from 'react';
 import LoadingScreen from './core/LoadingScreen.js';
 import { Canvas } from '@react-three/fiber';
-import { useProgress } from '@react-three/drei';
+import UI from './ui/UIOverlay.js';
 
 type Satellite = {
     name: string;
@@ -15,27 +13,15 @@ type Satellite = {
     alt: number;
 };
 
-const Module = await createModule();
-
-function getGroups() {
-
-    const arr = Module.getSatelliteGroups();
-    const groups: string[] = [];
-    for (let i = 0; i < arr.size(); i++) {
-        groups.push(arr.get(i));
-    }
-    arr.delete();
-
-    return groups;
-}
-
 function App() {
-  const satelliteGroups = getGroups();
+  const startAppDate = useRef(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [loaded, setLoaded] = useState(false);
   const satellitesRef = useRef<Satellite[]>([]);
   const workerRef = useRef(null);
   const tSinceRef = useRef(1);
   const timeRateRef = useRef(1);
+  const filterRef = useRef(new Map());
 
   useEffect(() => {
         const worker = new Worker(
@@ -46,13 +32,22 @@ function App() {
         workerRef.current = worker;
 
         worker.onmessage = (event) => {
-            satellitesRef.current = event.data;
-            setLoaded(true);
+            if (event.data.type == "update")
+            {
+                satellitesRef.current = event.data.data;
+                setLoaded(true);
+            }
+            if (event.data.type == "getSatellite")
+            {
+            }
+            if (event.data.type == "filter")
+            {
+                filterRef.current = event.data.data;
+            }
         };
 
         worker.postMessage({
             type: "start",
-            groups: satelliteGroups,
             tSince: tSinceRef.current
         });
 
@@ -65,6 +60,14 @@ function App() {
         };
     }, []);
 
+    useEffect(() => {
+    const interval = setInterval(() => {
+        setCurrentDate(new Date(startAppDate.current.getTime() + (tSinceRef.current * 1000)));
+        }, 200);
+
+        return () => clearInterval(interval);
+    }, []);
+
   if (!loaded) {
     return (
         <LoadingScreen />
@@ -72,9 +75,12 @@ function App() {
   }
 
   return (
-    <Canvas camera={{ fov: 50, position: [0, 0, 40] }}>
-        <Simulation satellitesRef={satellitesRef} tSinceRef={tSinceRef} timeRateRef={timeRateRef} workerRef={workerRef} />
-    </Canvas>
+    <div className="app">
+        <Canvas camera={{ fov: 50, position: [0, 0, 300] }}>
+            <Simulation satellitesRef={satellitesRef} tSinceRef={tSinceRef} timeRateRef={timeRateRef} workerRef={workerRef} />
+        </Canvas>
+        <UI startDate={startAppDate.current} date={currentDate} tSinceRef={tSinceRef} timeRateRef={timeRateRef} groups={filterRef} workerRef={workerRef} />
+    </div>
   );
 }
 

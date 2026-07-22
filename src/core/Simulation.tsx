@@ -32,15 +32,19 @@ const Scene = ({ satellitesRef, tSinceRef, timeRateRef, workerRef }: SimulationP
 
         useFrame((_, delta) => {
             tSinceRef.current += timeRateRef.current * delta;
+
             workerRef.current.postMessage({
                 type: "setTimeRate",
                 tSince: tSinceRef.current
             });
 
-            if (scene.current) {
-                const earthRotationSpeed = (2 * Math.PI) / (23 * 56 * 60);
-                scene.current.rotation.y += delta * earthRotationSpeed;
-            }
+            workerRef.current.postMessage({
+                type: "getSatellite",
+                index: 150
+            });
+
+            const earthRotationSpeed = (2 * Math.PI) / (23 * 56 * 60);
+            scene.current.rotation.y += delta * earthRotationSpeed * timeRateRef.current;
         });
 
     return (
@@ -57,27 +61,15 @@ const Scene = ({ satellitesRef, tSinceRef, timeRateRef, workerRef }: SimulationP
 
 function Simulation({ satellitesRef, tSinceRef, timeRateRef, workerRef }: SimulationProps) {
     return (
-        // <KeyboardControls
-        //     map={[
-        //         { name: "forward", keys: ["ArrowUp", "w", "W"] },
-        //         { name: "backward", keys: ["ArrowDown", "s", "S"] },
-        //         { name: "right", keys: ["ArrowRight", "d", "D"] },
-        //         { name: "left", keys: ["ArrowLeft", "a", "A"] },
-        //         { name: "up", keys: ["Space"] },
-        //         { name: "down", keys: ["Shift"] }
-        //     ]}>
         <>
-                {/* <CameraController minDistance={earth.radius + 3} maxDistance={150} /> */}
-            <OrbitControls minDistance={earth.radius + 2} maxDistance={150}/>
-            <Sun />
+            <OrbitControls minDistance={earth.radius + 2} maxDistance={600}/>
+            <Sun timeRateRef={timeRateRef} />
             <ambientLight intensity={0.1} />
             <Suspense fallback={null}>
                 <Skybox />
                 <Scene satellitesRef={satellitesRef} tSinceRef={tSinceRef} timeRateRef={timeRateRef} workerRef={workerRef} />
             </Suspense>
         </>
-
-        // </KeyboardControls>
     )
 }
 

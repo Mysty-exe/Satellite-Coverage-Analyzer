@@ -23,7 +23,15 @@ libsgp4::CoordGeodetic Satellite::getCurrentPosition(std::time_t startDate, doub
 
     libsgp4::DateTime currentTime = libsgp4::DateTime(local_time->tm_year + 1900, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
 
-    return propogator->FindPosition(currentTime).ToGeodetic();
+    try
+    {
+        libsgp4::Eci position = propogator->FindPosition(currentTime);
+        return position.ToGeodetic();
+    }
+    catch (const std::exception &e)
+    {
+        return libsgp4::CoordGeodetic(0, 0, 0, false);
+    }
 }
 
 libsgp4::Vector Satellite::getCurrentVelocity(std::time_t startDate, double tSince)
@@ -32,10 +40,19 @@ libsgp4::Vector Satellite::getCurrentVelocity(std::time_t startDate, double tSin
     std::tm *local_time = std::localtime(&startDate);
 
     libsgp4::DateTime currentTime = libsgp4::DateTime(local_time->tm_year + 1900, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
-    return propogator->FindPosition(currentTime).Velocity();
+
+    try
+    {
+        libsgp4::Eci position = propogator->FindPosition(currentTime);
+        return position.Velocity();
+    }
+    catch (const std::exception &e)
+    {
+        return libsgp4::Vector(0, 0, 0);
+    }
 }
 
-std::string Satellite::getSatelliteTypeStr()
+std::string Satellite::getSatelliteTypeStr(SatelliteType satelliteType)
 {
     switch (satelliteType)
     {
@@ -136,4 +153,41 @@ SatelliteDTO Satellite::getDTO(std::time_t startDate, double tSince)
 {
     libsgp4::CoordGeodetic pos = getCurrentPosition(startDate, tSince);
     return SatelliteDTO(name, colour, pos.latitude, pos.longitude, pos.altitude);
+}
+
+SatelliteDetails Satellite::getDetails(std::time_t startDate, double tSince)
+{
+    libsgp4::CoordGeodetic pos = getCurrentPosition(startDate, tSince);
+    libsgp4::Vector vel = getCurrentVelocity(startDate, tSince);
+
+    libsgp4::Tle tle = libsgp4::Tle(name, TleLineOne, TleLineTwo);
+    SatelliteDetails details;
+
+    details.name = name;
+    details.colour = colour;
+
+    details.lat = pos.latitude;
+    details.lon = pos.longitude;
+    details.alt = pos.altitude;
+
+    details.velX = vel.x;
+    details.velY = vel.y;
+    details.velZ = vel.z;
+
+    details.epoch = tle.Epoch().ToString();
+    details.NORAD = tle.NoradNumber();
+    details.designator = tle.IntDesignator();
+
+    details.inclination = tle.Inclination(true);
+    details.RAN = tle.RightAscendingNode(true);
+    details.eccentricity = tle.Eccentricity();
+    details.argumentPerigee = tle.ArgumentPerigee(true);
+    details.meanAnomaly = tle.MeanAnomaly(true);
+
+    details.meanMotion = tle.MeanMotion();
+    details.meanMotionDT2 = tle.MeanMotionDt2();
+    details.meanMotionDDT6 = tle.MeanMotionDdt6();
+    details.bSTAR = tle.BStar();
+
+    return details;
 }
